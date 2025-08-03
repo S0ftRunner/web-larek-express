@@ -25,11 +25,12 @@ const productSchema = new mongoose.Schema<IProduct>({
   image: {
     fileName: {
       type: String,
+      required: true,
     },
     originalName: {
       type: String,
+      required: true,
     },
-    required: true,
   },
 
   category: {
