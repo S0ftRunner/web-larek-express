@@ -1,8 +1,13 @@
 export interface IUser {
-	email: string;
-	name: string;
+  email: string;
+  name: string;
 }
 
 export type UserRegisterBodyDto = {
-	password: string;
+  password: string;
 } & IUser;
+
+export type UserLoginBodyDto = {
+  email: string;
+  password: string;
+};
