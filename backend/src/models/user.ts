@@ -1,11 +1,18 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import { NOT_FOUNDED_USER } from "../utils/constants";
 
 interface IUser {
   name: string;
   email: string;
   password: string;
 }
-
+interface UserModel extends mongoose.Model<IUser> {
+  findUserByCredentials: (
+    email: string,
+    password: string
+  ) => Promise<mongoose.Document<unknown, any, IUser>>;
+}
 const userSchema = new mongoose.Schema<IUser>({
   name: {
     type: String,
@@ -23,4 +30,22 @@ const userSchema = new mongoose.Schema<IUser>({
   },
 });
 
-export default mongoose.model<IUser>("user", userSchema);
+userSchema.static(
+  "findUserByCredentials",
+  async function findUserByCredentials(email: string, password: string) {
+    const user: IUser = await this.findOne({ email });
+    if (!user) {
+      return Promise.reject(new Error(NOT_FOUNDED_USER));
+    }
+
+    const matched = await bcrypt.compare(password, user.password);
+
+    if (!matched) {
+      return Promise.reject(new Error(NOT_FOUNDED_USER));
+    }
+
+    return user;
+  }
+);
+
+export default mongoose.model<IUser, UserModel>("user", userSchema);

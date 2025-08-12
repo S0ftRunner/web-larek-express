@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import { UserLoginBodyDto, UserRegisterBodyDto } from "types";
-import { NOT_FOUNDED_USER, SALT_SIZE } from "../utils/constants";
+import { MAX_AGE, SALT_SIZE } from "../utils/constants";
 import user from "../models/user";
 
 export const register = async (
@@ -43,21 +43,12 @@ export const login = async (
       .AUTH_ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"];
 
     const { email, password } = req.body;
-    const findedUser = await user.findOne({ email });
-
+    
     if (jwtSecret?.length === 0) {
       return Promise.reject(new Error("На сервере отсутствует jwt-секрет"));
     }
-
-    if (!findedUser) {
-      return Promise.reject(new Error(NOT_FOUNDED_USER));
-    }
-
-    const matched = await bcrypt.compare(password, findedUser.password);
-
-    if (!matched) {
-      return Promise.reject(new Error(NOT_FOUNDED_USER));
-    }
+    
+    const findedUser = await user.findUserByCredentials(email, password);
 
     const accessToken = jwt.sign({ _id: findedUser._id }, jwtSecret!, {
       expiresIn: accessTokenExpire!,
@@ -71,7 +62,7 @@ export const login = async (
       sameSite: "none",
       secure: true,
       httpOnly: true,
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      maxAge: MAX_AGE,
     });
 
     res.send({ accessToken });
