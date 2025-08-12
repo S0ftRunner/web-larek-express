@@ -1,13 +1,13 @@
+import { configService } from "./config";
 import express from "express";
 import cors from "cors";
 import productRoute from "./routes/products";
 import userRoute from "./routes/user";
-import { configService } from "./config";
 import path from "path";
 
 const app = express();
-
 configService();
+
 
 app.use(
   cors({

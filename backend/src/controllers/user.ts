@@ -34,8 +34,20 @@ export const login = async (
   res: Response
 ) => {
   try {
+    const jwtSecret = process.env.JWT_SECRET;
+
+    const refreshTokenExpire = process.env
+      .AUTH_REFRESH_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"];
+
+    const accessTokenExpire = process.env
+      .AUTH_ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"];
+
     const { email, password } = req.body;
     const findedUser = await user.findOne({ email });
+
+    if (jwtSecret?.length === 0) {
+      return Promise.reject(new Error("На сервере отсутствует jwt-секрет"));
+    }
 
     if (!findedUser) {
       return Promise.reject(new Error(NOT_FOUNDED_USER));
@@ -47,23 +59,13 @@ export const login = async (
       return Promise.reject(new Error(NOT_FOUNDED_USER));
     }
 
-    const accessTokenExpire = process.env
-      .AUTH_ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"];
+    const accessToken = jwt.sign({ _id: findedUser._id }, jwtSecret!, {
+      expiresIn: accessTokenExpire!,
+    });
 
-    const accessToken = jwt.sign(
-      { _id: findedUser._id },
-      process.env.JWT_SECRET!,
-      { expiresIn: accessTokenExpire! }
-    );
-
-    const refreshTokenExpire = process.env
-      .AUTH_REFRESH_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"];
-
-    const refreshToken = jwt.sign(
-      { _id: findedUser._id },
-      process.env.JWT_SECRET!,
-      { expiresIn: refreshTokenExpire }
-    );
+    const refreshToken = jwt.sign({ _id: findedUser._id }, jwtSecret!, {
+      expiresIn: refreshTokenExpire!,
+    });
 
     res.cookie("REFRESH_TOKEN", refreshToken, {
       sameSite: "none",
@@ -74,6 +76,7 @@ export const login = async (
 
     res.send({ accessToken });
   } catch (err) {
+    console.log(err);
     res.status(401).send({ message: err });
   }
 };
