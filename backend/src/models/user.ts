@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 import bcrypt from "bcryptjs";
 import { NOT_FOUNDED_USER } from "../utils/constants";
 
@@ -12,6 +12,11 @@ interface UserModel extends mongoose.Model<IUser> {
     email: string,
     password: string
   ) => Promise<mongoose.Document<unknown, any, IUser>>;
+
+  // придумать как реализовать генерацию токенов
+  // generateTokens: (
+  //   _id: mongoose.Types.UUID
+  // ) => 
 }
 const userSchema = new mongoose.Schema<IUser>({
   name: {
