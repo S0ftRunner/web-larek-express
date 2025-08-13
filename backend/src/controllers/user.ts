@@ -65,7 +65,7 @@ export const login = async (
       maxAge: MAX_AGE,
     });
 
-    res.send({ accessToken });
+    res.send({user: findedUser, accessToken, refreshToken });
   } catch (err) {
     console.log(err);
     res.status(401).send({ message: err });
