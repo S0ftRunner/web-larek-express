@@ -1,4 +1,4 @@
-import mongoose, { Mongoose } from "mongoose";
+import mongoose, { HydratedDocument } from "mongoose";
 import bcrypt from "bcryptjs";
 import { NOT_FOUNDED_USER } from "../utils/constants";
 
@@ -6,17 +6,18 @@ interface IUser {
   name: string;
   email: string;
   password: string;
+  tokens: Array<string>;
 }
 interface UserModel extends mongoose.Model<IUser> {
   findUserByCredentials: (
     email: string,
     password: string
-  ) => Promise<mongoose.Document<unknown, any, IUser>>;
+  ) => Promise<HydratedDocument<IUser>>;
 
   // придумать как реализовать генерацию токенов
   // generateTokens: (
   //   _id: mongoose.Types.UUID
-  // ) => 
+  // ) =>
 }
 const userSchema = new mongoose.Schema<IUser>({
   name: {
@@ -33,12 +34,17 @@ const userSchema = new mongoose.Schema<IUser>({
     required: true,
     minlength: 8,
   },
+  tokens: {
+    type: [String],
+    default: [],
+  },
 });
 
 userSchema.static(
   "findUserByCredentials",
   async function findUserByCredentials(email: string, password: string) {
-    const user: IUser = await this.findOne({ email });
+    const user = await this.findOne({ email });
+
     if (!user) {
       return Promise.reject(new Error(NOT_FOUNDED_USER));
     }
@@ -53,4 +59,4 @@ userSchema.static(
   }
 );
 
-export default mongoose.model<IUser, UserModel>("user", userSchema);
+export default mongoose.model<IUser, UserModel>("User", userSchema);

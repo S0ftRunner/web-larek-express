@@ -2,26 +2,59 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { UserLoginBodyDto, UserRegisterBodyDto } from "types";
-import { MAX_AGE, SALT_SIZE } from "../utils/constants";
-import user from "../models/user";
+import { SALT_SIZE } from "../utils/constants";
+import User from "../models/user";
+import ms from "ms";
 
 export const register = async (
   req: Request<{}, {}, UserRegisterBodyDto>,
   res: Response
 ) => {
   try {
+    const jwtSecret = process.env.JWT_SECRET;
+
+    const refreshTokenExpire = process.env
+      .AUTH_REFRESH_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"];
+
+    const accessTokenExpire = process.env
+      .AUTH_ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"];
+
+    if (jwtSecret?.length === 0) {
+      return Promise.reject(new Error("На сервере отсутствует jwt-секрет"));
+    }
+
     const { email, name, password } = req.body;
     const hash = await bcrypt.hash(password, SALT_SIZE);
-    const createdUser = await user.create({
+    const createdUser = await User.create({
       name,
       email,
       password: hash,
     });
+    const accessToken = jwt.sign({ _id: createdUser._id }, jwtSecret!, {
+      expiresIn: accessTokenExpire!,
+    });
 
-    res.status(200).send({
-      user: { email: createdUser.email, name: createdUser.name },
-      success: true,
-      accessToken: "fesf",
+    const refreshToken = jwt.sign({ _id: createdUser._id }, jwtSecret!, {
+      expiresIn: refreshTokenExpire!,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+      maxAge: ms(
+        (process.env.AUTH_REFRESH_TOKEN_EXPIRY || "7d") as ms.StringValue
+      ),
+      path: "/",
+    });
+
+    res.send({
+      user: {
+        name: createdUser.name,
+        email: createdUser.email,
+      },
+      accessToken,
+      refreshToken,
     });
   } catch (err) {
     console.log(err);
@@ -41,14 +74,14 @@ export const login = async (
 
     const accessTokenExpire = process.env
       .AUTH_ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"];
-
     const { email, password } = req.body;
-    
+
     if (jwtSecret?.length === 0) {
       return Promise.reject(new Error("На сервере отсутствует jwt-секрет"));
     }
-    
-    const findedUser = await user.findUserByCredentials(email, password);
+
+    const findedUser = await User.findUserByCredentials(email, password);
+    console.log(findedUser);
 
     const accessToken = jwt.sign({ _id: findedUser._id }, jwtSecret!, {
       expiresIn: accessTokenExpire!,
@@ -58,16 +91,30 @@ export const login = async (
       expiresIn: refreshTokenExpire!,
     });
 
-    res.cookie("REFRESH_TOKEN", refreshToken, {
-      sameSite: "none",
-      secure: true,
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      maxAge: MAX_AGE,
+      sameSite: "lax",
+      secure: false,
+      maxAge: ms(
+        (process.env.AUTH_REFRESH_TOKEN_EXPIRY || "7d") as ms.StringValue
+      ),
+      path: "/",
     });
 
-    res.send({user: findedUser, accessToken, refreshToken });
+    res.send({
+      user: {
+        name: findedUser.name,
+        email: findedUser.email,
+      },
+      accessToken,
+      refreshToken,
+    });
   } catch (err) {
     console.log(err);
     res.status(401).send({ message: err });
   }
 };
+
+export const user = async (res: Response, req: Request) => {
+
+}

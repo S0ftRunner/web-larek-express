@@ -4,6 +4,7 @@ import cors from "cors";
 import productRoute from "./routes/products";
 import userRoute from "./routes/user";
 import path from "path";
+import { jwtMiddleware } from "./middlewares/jwtMiddleware";
 
 const app = express();
 configService();
