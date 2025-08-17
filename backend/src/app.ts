@@ -1,4 +1,4 @@
-import { configService } from "./config";
+import { configs, configService } from "./config";
 import express from "express";
 import cors from "cors";
 import productRoute from "./routes/products";
@@ -7,6 +7,7 @@ import path from "path";
 import { jwtMiddleware } from "./middlewares/jwtMiddleware";
 
 const app = express();
+const { port } = configs;
 configService();
 
 

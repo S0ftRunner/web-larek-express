@@ -1,23 +1,20 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { UserLoginBodyDto, UserRegisterBodyDto } from "types";
-import { SALT_SIZE } from "../utils/constants";
-import User from "../models/user";
 import ms from "ms";
+import { UserLoginBodyDto, UserRegisterBodyDto } from "types";
+import User from "../models/user";
+import { SALT_SIZE } from "../utils/constants";
+import { configs } from "../config";
 
 export const register = async (
   req: Request<{}, {}, UserRegisterBodyDto>,
   res: Response
 ) => {
   try {
-    const jwtSecret = process.env.JWT_SECRET;
+    const { jwtSecret } = configs;
 
-    const refreshTokenExpire = process.env
-      .AUTH_REFRESH_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"];
-
-    const accessTokenExpire = process.env
-      .AUTH_ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"];
+    const { refreshTokenExpiry, accessTokenExpiry } = configs.auth;
 
     if (jwtSecret?.length === 0) {
       return Promise.reject(new Error("На сервере отсутствует jwt-секрет"));
@@ -30,12 +27,13 @@ export const register = async (
       email,
       password: hash,
     });
+
     const accessToken = jwt.sign({ _id: createdUser._id }, jwtSecret!, {
-      expiresIn: accessTokenExpire!,
+      expiresIn: accessTokenExpiry,
     });
 
     const refreshToken = jwt.sign({ _id: createdUser._id }, jwtSecret!, {
-      expiresIn: refreshTokenExpire!,
+      expiresIn: refreshTokenExpiry,
     });
 
     res.cookie("refreshToken", refreshToken, {
@@ -67,13 +65,10 @@ export const login = async (
   res: Response
 ) => {
   try {
-    const jwtSecret = process.env.JWT_SECRET;
+    const { jwtSecret } = configs;
 
-    const refreshTokenExpire = process.env
-      .AUTH_REFRESH_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"];
+    const { refreshTokenExpiry, accessTokenExpiry } = configs.auth;
 
-    const accessTokenExpire = process.env
-      .AUTH_ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"];
     const { email, password } = req.body;
 
     if (jwtSecret?.length === 0) {
@@ -84,20 +79,18 @@ export const login = async (
     console.log(findedUser);
 
     const accessToken = jwt.sign({ _id: findedUser._id }, jwtSecret!, {
-      expiresIn: accessTokenExpire!,
+      expiresIn: accessTokenExpiry,
     });
 
     const refreshToken = jwt.sign({ _id: findedUser._id }, jwtSecret!, {
-      expiresIn: refreshTokenExpire!,
+      expiresIn: refreshTokenExpiry!,
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       sameSite: "lax",
       secure: false,
-      maxAge: ms(
-        (process.env.AUTH_REFRESH_TOKEN_EXPIRY || "7d") as ms.StringValue
-      ),
+      maxAge: ms((refreshTokenExpiry || "7d") as ms.StringValue),
       path: "/",
     });
 
@@ -115,6 +108,4 @@ export const login = async (
   }
 };
 
-export const user = async (res: Response, req: Request) => {
-
-}
+export const user = async (res: Response, req: Request) => {};
