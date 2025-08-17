@@ -2,7 +2,12 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import ms from "ms";
-import { UserLoginBodyDto, UserRegisterBodyDto } from "types";
+import {
+  MiddleWareRequestBody,
+  RequestWithId,
+  UserLoginBodyDto,
+  UserRegisterBodyDto,
+} from "types";
 import User from "../models/user";
 import { SALT_SIZE } from "../utils/constants";
 import { configs } from "../config";
@@ -76,7 +81,6 @@ export const login = async (
     }
 
     const findedUser = await User.findUserByCredentials(email, password);
-    console.log(findedUser);
 
     const accessToken = jwt.sign({ _id: findedUser._id }, jwtSecret!, {
       expiresIn: accessTokenExpiry,
@@ -108,4 +112,9 @@ export const login = async (
   }
 };
 
-export const user = async (res: Response, req: Request) => {};
+export const user = async (res: Response, req: Request) => {
+  const id = req.user!._id;
+  console.log(id);
+  const findedUser = await User.findById({ id });
+  console.log(`founded user is ${findedUser}`);
+};

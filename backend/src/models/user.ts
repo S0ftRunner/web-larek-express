@@ -33,17 +33,19 @@ const userSchema = new mongoose.Schema<IUser>({
     type: String,
     required: true,
     minlength: 8,
+    select: false,
   },
   tokens: {
     type: [String],
     default: [],
+    select: false,
   },
 });
 
 userSchema.static(
   "findUserByCredentials",
   async function findUserByCredentials(email: string, password: string) {
-    const user = await this.findOne({ email });
+    const user = await this.findOne({ email }).select("+password");
 
     if (!user) {
       return Promise.reject(new Error(NOT_FOUNDED_USER));

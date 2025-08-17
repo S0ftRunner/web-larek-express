@@ -1,3 +1,5 @@
+import { JwtPayload } from "jsonwebtoken";
+
 export interface IUser {
   email: string;
   name: string;
@@ -10,4 +12,14 @@ export type UserRegisterBodyDto = {
 export type UserLoginBodyDto = {
   email: string;
   password: string;
+};
+
+export type MiddleWareRequestBody = {
+  user: {
+    _id: string | JwtPayload;
+  };
+};
+
+export type RequestWithId = {
+  _id: string | JwtPayload;
 };

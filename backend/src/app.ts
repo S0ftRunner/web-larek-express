@@ -4,21 +4,29 @@ import cors from "cors";
 import productRoute from "./routes/products";
 import userRoute from "./routes/user";
 import path from "path";
-import { jwtMiddleware } from "./middlewares/jwtMiddleware";
 
 const app = express();
-const { port } = configs;
+const { port, originAllow } = configs;
 configService();
 
-
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        _id: string;
+      };
+    }
+  }
+}
 app.use(
   cors({
-    origin: process.env.ORIGIN_ALLOW,
+    origin: originAllow,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -26,6 +34,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/product", productRoute);
 app.use("/auth", userRoute);
 
-app.listen(3000, () => {
+app.listen(port, () => {
   console.log("Сервер запущен");
 });
