@@ -9,15 +9,6 @@ const app = express();
 const { port, originAllow } = configs;
 configService();
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        _id: string;
-      };
-    }
-  }
-}
 app.use(
   cors({
     origin: originAllow,

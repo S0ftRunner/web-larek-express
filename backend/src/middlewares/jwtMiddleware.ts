@@ -1,10 +1,10 @@
 import { configs } from "../config";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { MiddleWareRequestBody } from "types";
+import { RequestWithId } from "../types";
 
 export const authMiddleware = (
-  req: Request,
+  req: Request & RequestWithId,
   res: Response,
   next: NextFunction
 ) => {
@@ -24,8 +24,6 @@ export const authMiddleware = (
     return res.status(401).send({ message: "Нужна авторизация" });
   }
 
-  console.log(payload);
-  req.user!._id = payload._id;
-
+  req.user = payload;
   next();
 };

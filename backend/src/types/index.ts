@@ -21,5 +21,5 @@ export type MiddleWareRequestBody = {
 };
 
 export type RequestWithId = {
-  _id: string | JwtPayload;
+  user?: { _id: string | JwtPayload };
 };

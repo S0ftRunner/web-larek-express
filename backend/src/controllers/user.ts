@@ -3,14 +3,14 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import ms from "ms";
 import {
-  MiddleWareRequestBody,
   RequestWithId,
   UserLoginBodyDto,
   UserRegisterBodyDto,
-} from "types";
+} from "../types";
 import User from "../models/user";
-import { SALT_SIZE } from "../utils/constants";
+import { NOT_FOUNDED_USER, SALT_SIZE } from "../utils/constants";
 import { configs } from "../config";
+
 
 export const register = async (
   req: Request<{}, {}, UserRegisterBodyDto>,
@@ -61,7 +61,7 @@ export const register = async (
     });
   } catch (err) {
     console.log(err);
-    res.status(500).send({ message: err });
+    res.status(500).send({ message: NOT_FOUNDED_USER });
   }
 };
 
@@ -82,11 +82,11 @@ export const login = async (
 
     const findedUser = await User.findUserByCredentials(email, password);
 
-    const accessToken = jwt.sign({ _id: findedUser._id }, jwtSecret!, {
+    const accessToken = jwt.sign({ _id: findedUser._id }, jwtSecret, {
       expiresIn: accessTokenExpiry,
     });
 
-    const refreshToken = jwt.sign({ _id: findedUser._id }, jwtSecret!, {
+    const refreshToken = jwt.sign({ _id: findedUser._id }, jwtSecret, {
       expiresIn: refreshTokenExpiry!,
     });
 
@@ -107,14 +107,34 @@ export const login = async (
       refreshToken,
     });
   } catch (err) {
-    console.log(err);
-    res.status(401).send({ message: err });
+    res.status(401).send({ message: NOT_FOUNDED_USER });
   }
 };
 
-export const user = async (res: Response, req: Request) => {
-  const id = req.user!._id;
-  console.log(id);
-  const findedUser = await User.findById({ id });
-  console.log(`founded user is ${findedUser}`);
+export const user = async (
+  req: Request & RequestWithId,
+  res: Response
+) => {
+  const { jwtSecret } = configs;
+
+  const { accessTokenExpiry } = configs.auth;
+
+  const id = req.user?._id;
+  const findedUser = await User.findById(id);
+  if (!findedUser) {
+    return res.status(401).send({ message: "Пользователь не был найден" });
+  }
+
+  const accessToken = jwt.sign({ _id: findedUser._id }, jwtSecret, {
+    expiresIn: accessTokenExpiry,
+  });
+
+  return res.send({
+    user: {
+      name: findedUser.name,
+      email: findedUser.email,
+    },
+    succes: true,
+    accessToken,
+  });
 };
