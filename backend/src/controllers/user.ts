@@ -133,7 +133,6 @@ export const user = async (req: Request & RequestWithId, res: Response) => {
 
   findedUser.tokens.push(refreshToken);
   await findedUser.save();
-  console.log(`user is ${findedUser}`);
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
@@ -152,3 +151,7 @@ export const user = async (req: Request & RequestWithId, res: Response) => {
     accessToken,
   });
 };
+
+export const logout = async (req: Request, res: Response) => {
+  
+}
