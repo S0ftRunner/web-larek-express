@@ -2,18 +2,13 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import ms from "ms";
-import {
-  RequestWithId,
-  UserLoginBodyDto,
-  UserRegisterBodyDto,
-} from "../types";
+import { RequestWithId, UserLoginBodyDto } from "../types";
 import User from "../models/user";
 import { NOT_FOUNDED_USER, SALT_SIZE } from "../utils/constants";
 import { configs } from "../config";
 
-
 export const register = async (
-  req: Request<{}, {}, UserRegisterBodyDto>,
+  req: Request,
   res: Response
 ) => {
   try {
@@ -40,6 +35,9 @@ export const register = async (
     const refreshToken = jwt.sign({ _id: createdUser._id }, jwtSecret!, {
       expiresIn: refreshTokenExpiry,
     });
+
+    createdUser.tokens.push(refreshToken);
+    await createdUser.save();
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -90,6 +88,9 @@ export const login = async (
       expiresIn: refreshTokenExpiry!,
     });
 
+    findedUser.tokens.push(refreshToken);
+    await findedUser.save();
+
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       sameSite: "lax",
@@ -111,22 +112,35 @@ export const login = async (
   }
 };
 
-export const user = async (
-  req: Request & RequestWithId,
-  res: Response
-) => {
+export const user = async (req: Request & RequestWithId, res: Response) => {
   const { jwtSecret } = configs;
 
-  const { accessTokenExpiry } = configs.auth;
+  const { refreshTokenExpiry, accessTokenExpiry } = configs.auth;
 
   const id = req.user?._id;
-  const findedUser = await User.findById(id);
+  const findedUser = await User.findById(id).select("+tokens");
   if (!findedUser) {
-    return res.status(401).send({ message: "Пользователь не был найден" });
+    return res.status(404).send({ message: "Пользователь не был найден" });
   }
 
   const accessToken = jwt.sign({ _id: findedUser._id }, jwtSecret, {
     expiresIn: accessTokenExpiry,
+  });
+
+  const refreshToken = jwt.sign({ _id: findedUser._id }, jwtSecret, {
+    expiresIn: refreshTokenExpiry!,
+  });
+
+  findedUser.tokens.push(refreshToken);
+  await findedUser.save();
+  console.log(`user is ${findedUser}`);
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false,
+    maxAge: ms((refreshTokenExpiry || "7d") as ms.StringValue),
+    path: "/",
   });
 
   return res.send({

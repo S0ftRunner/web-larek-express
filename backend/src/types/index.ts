@@ -7,6 +7,7 @@ export interface IUser {
 
 export type UserRegisterBodyDto = {
   password: string;
+  tokens: Array<string>;
 } & IUser;
 
 export type UserLoginBodyDto = {
