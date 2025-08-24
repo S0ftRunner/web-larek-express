@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import ms from "ms";
@@ -7,10 +7,7 @@ import User from "../models/user";
 import { NOT_FOUNDED_USER, SALT_SIZE } from "../utils/constants";
 import { configs } from "../config";
 
-export const register = async (
-  req: Request,
-  res: Response
-) => {
+export const register = async (req: Request, res: Response) => {
   try {
     const { jwtSecret } = configs;
 
@@ -58,7 +55,6 @@ export const register = async (
       refreshToken,
     });
   } catch (err) {
-    console.log(err);
     res.status(500).send({ message: NOT_FOUNDED_USER });
   }
 };
@@ -113,9 +109,6 @@ export const login = async (
 };
 
 export const user = async (req: Request & RequestWithId, res: Response) => {
-  const { jwtSecret } = configs;
-
-  const { refreshTokenExpiry, accessTokenExpiry } = configs.auth;
 
   const id = req.user?._id;
   const findedUser = await User.findById(id).select("+tokens");
@@ -123,18 +116,71 @@ export const user = async (req: Request & RequestWithId, res: Response) => {
     return res.status(404).send({ message: "Пользователь не был найден" });
   }
 
-  const accessToken = jwt.sign({ _id: findedUser._id }, jwtSecret, {
+
+  return res.send({
+    user: {
+      name: findedUser.name,
+      email: findedUser.email,
+    },
+    succes: true,
+  });
+};
+
+export const logout = async (req: Request, res: Response) => {
+  const refreshToken = req.cookies.refreshToken;
+  if (!refreshToken) {
+    return res.status(400).send({ message: "Токен не найден!" });
+  }
+
+  const user = await User.updateOne(
+    { tokens: refreshToken },
+    {
+      $pull: { tokens: refreshToken },
+    }
+  );
+
+  if (user.matchedCount === 0) {
+    return res.status(401).send({ message: "Пользователь не найден" });
+  }
+
+  res.clearCookie("refreshToken");
+
+  return res.send({
+    success: true,
+  });
+};
+
+export const refreshAccessToken = async (req: Request, res: Response) => {
+  const { jwtSecret } = configs;
+
+  const { refreshTokenExpiry, accessTokenExpiry } = configs.auth;
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!refreshToken) {
+    console.log("Нет рефреш токена");
+    return res.status(401).send({ message: "Пожалуйста, выполните вход" });
+  }
+
+  const user = await User.findOne({ tokens: refreshToken }).select("+tokens");
+
+  if (!user) {
+    console.log("Не найден пользователь");
+    return res.status(404).send({ message: "Пользователь не найден!" });
+  }
+
+  const accessToken = jwt.sign({ _id: user._id }, jwtSecret, {
     expiresIn: accessTokenExpiry,
   });
 
-  const refreshToken = jwt.sign({ _id: findedUser._id }, jwtSecret, {
+  const newRefreshToken = jwt.sign({ _id: user._id }, jwtSecret, {
     expiresIn: refreshTokenExpiry!,
   });
 
-  findedUser.tokens.push(refreshToken);
-  await findedUser.save();
+  user.tokens = user.tokens.filter((token) => token !== refreshToken);
+  user.tokens.push(newRefreshToken);
+  await user.save();
 
-  res.cookie("refreshToken", refreshToken, {
+  res.cookie("refreshToken", newRefreshToken, {
     httpOnly: true,
     sameSite: "lax",
     secure: false,
@@ -144,14 +190,10 @@ export const user = async (req: Request & RequestWithId, res: Response) => {
 
   return res.send({
     user: {
-      name: findedUser.name,
-      email: findedUser.email,
+      name: user.name,
+      email: user.email,
     },
     succes: true,
     accessToken,
   });
 };
-
-export const logout = async (req: Request, res: Response) => {
-  
-}

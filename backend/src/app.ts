@@ -1,9 +1,10 @@
-import { configs, configService } from "./config";
 import express from "express";
 import cors from "cors";
+import path from "path";
+import cookieParser from "cookie-parser";
 import productRoute from "./routes/products";
 import userRoute from "./routes/user";
-import path from "path";
+import { configs, configService } from "./config";
 
 const app = express();
 const { port, originAllow } = configs;
@@ -18,6 +19,7 @@ app.use(
   })
 );
 
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
