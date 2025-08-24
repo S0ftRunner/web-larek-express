@@ -1,22 +1,16 @@
-import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import ms from "ms";
+
 import { RequestWithId, UserLoginBodyDto } from "../types";
 import User from "../models/user";
 import { NOT_FOUNDED_USER, SALT_SIZE } from "../utils/constants";
 import { configs } from "../config";
+import { generateTokens } from "../utils/generateTokens";
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { jwtSecret } = configs;
-
-    const { refreshTokenExpiry, accessTokenExpiry } = configs.auth;
-
-    if (jwtSecret?.length === 0) {
-      return Promise.reject(new Error("На сервере отсутствует jwt-секрет"));
-    }
-
+    const { refreshTokenExpiry } = configs.auth;
     const { email, name, password } = req.body;
     const hash = await bcrypt.hash(password, SALT_SIZE);
     const createdUser = await User.create({
@@ -25,13 +19,7 @@ export const register = async (req: Request, res: Response) => {
       password: hash,
     });
 
-    const accessToken = jwt.sign({ _id: createdUser._id }, jwtSecret!, {
-      expiresIn: accessTokenExpiry,
-    });
-
-    const refreshToken = jwt.sign({ _id: createdUser._id }, jwtSecret!, {
-      expiresIn: refreshTokenExpiry,
-    });
+    const { accessToken, refreshToken } = generateTokens(createdUser._id);
 
     createdUser.tokens.push(refreshToken);
     await createdUser.save();
@@ -40,9 +28,7 @@ export const register = async (req: Request, res: Response) => {
       httpOnly: true,
       sameSite: "lax",
       secure: false,
-      maxAge: ms(
-        (process.env.AUTH_REFRESH_TOKEN_EXPIRY || "7d") as ms.StringValue
-      ),
+      maxAge: ms((refreshTokenExpiry || "7d") as ms.StringValue),
       path: "/",
     });
 
@@ -64,26 +50,12 @@ export const login = async (
   res: Response
 ) => {
   try {
-    const { jwtSecret } = configs;
-
-    const { refreshTokenExpiry, accessTokenExpiry } = configs.auth;
-
     const { email, password } = req.body;
-
-    if (jwtSecret?.length === 0) {
-      return Promise.reject(new Error("На сервере отсутствует jwt-секрет"));
-    }
+    const { refreshTokenExpiry } = configs.auth;
 
     const findedUser = await User.findUserByCredentials(email, password);
 
-    const accessToken = jwt.sign({ _id: findedUser._id }, jwtSecret, {
-      expiresIn: accessTokenExpiry,
-    });
-
-    const refreshToken = jwt.sign({ _id: findedUser._id }, jwtSecret, {
-      expiresIn: refreshTokenExpiry!,
-    });
-
+    const { accessToken, refreshToken } = generateTokens(findedUser._id);
     findedUser.tokens.push(refreshToken);
     await findedUser.save();
 
@@ -109,13 +81,11 @@ export const login = async (
 };
 
 export const user = async (req: Request & RequestWithId, res: Response) => {
-
   const id = req.user?._id;
   const findedUser = await User.findById(id).select("+tokens");
   if (!findedUser) {
     return res.status(404).send({ message: "Пользователь не был найден" });
   }
-
 
   return res.send({
     user: {
@@ -151,9 +121,7 @@ export const logout = async (req: Request, res: Response) => {
 };
 
 export const refreshAccessToken = async (req: Request, res: Response) => {
-  const { jwtSecret } = configs;
-
-  const { refreshTokenExpiry, accessTokenExpiry } = configs.auth;
+  const { refreshTokenExpiry } = configs.auth;
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
@@ -168,14 +136,9 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
     return res.status(404).send({ message: "Пользователь не найден!" });
   }
 
-  const accessToken = jwt.sign({ _id: user._id }, jwtSecret, {
-    expiresIn: accessTokenExpiry,
-  });
-
-  const newRefreshToken = jwt.sign({ _id: user._id }, jwtSecret, {
-    expiresIn: refreshTokenExpiry!,
-  });
-
+  const { accessToken, refreshToken: newRefreshToken } = generateTokens(
+    user._id
+  );
   user.tokens = user.tokens.filter((token) => token !== refreshToken);
   user.tokens.push(newRefreshToken);
   await user.save();

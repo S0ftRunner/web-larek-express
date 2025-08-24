@@ -24,3 +24,8 @@ export type MiddleWareRequestBody = {
 export type RequestWithId = {
   user?: { _id: string | JwtPayload };
 };
+
+export type TGeneratedTokens = {
+  accessToken: string;
+  refreshToken: string;
+}
