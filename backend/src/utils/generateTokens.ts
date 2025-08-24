@@ -12,11 +12,11 @@ export const generateTokens = (
     throw new Error("На сервере отсутствует jwt-секрет");
   }
 
-  const accessToken = jwt.sign({ _id: id }, jwtSecret!, {
+  const accessToken = jwt.sign({ _id: id }, jwtSecret, {
     expiresIn: accessTokenExpiry,
   });
 
-  const refreshToken = jwt.sign({ _id: id }, jwtSecret!, {
+  const refreshToken = jwt.sign({ _id: id }, jwtSecret, {
     expiresIn: refreshTokenExpiry,
   });
 

@@ -28,4 +28,9 @@ export type RequestWithId = {
 export type TGeneratedTokens = {
   accessToken: string;
   refreshToken: string;
+};
+
+export enum Payment {
+  Card = "card",
+  Online = "online",
 }

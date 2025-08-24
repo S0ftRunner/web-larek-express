@@ -102,6 +102,7 @@ export const logout = async (req: Request, res: Response) => {
     return res.status(400).send({ message: "Токен не найден!" });
   }
 
+  // Удаляем рефреш токен
   const user = await User.updateOne(
     { tokens: refreshToken },
     {
@@ -139,6 +140,7 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
   const { accessToken, refreshToken: newRefreshToken } = generateTokens(
     user._id
   );
+
   user.tokens = user.tokens.filter((token) => token !== refreshToken);
   user.tokens.push(newRefreshToken);
   await user.save();
