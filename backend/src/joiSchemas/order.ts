@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { Payment } from "../types";
-import { Joi } from "celebrate";
+import { celebrate, Joi, Segments } from "celebrate";
 
 export interface IOrder {
   items: Array<mongoose.Types.ObjectId>;
@@ -12,6 +12,14 @@ export interface IOrder {
 }
 
 export const orderJoiSchema = Joi.object({
-  items: Joi.array().required(),
-  total: Joi.number(),
+  items: Joi.array().min(1).required(),
+  total: Joi.number().required(),
+  payment: Joi.valid(...Object.values(Payment)).required(),
+  phone: Joi.string().required(),
+  address: Joi.string().required(),
+  email: Joi.string().email().required(),
+});
+
+export const orderValidator = celebrate({
+  [Segments.BODY]: orderJoiSchema,
 });
