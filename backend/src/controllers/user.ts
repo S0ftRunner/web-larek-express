@@ -38,7 +38,6 @@ export const register = async (req: Request, res: Response) => {
         email: createdUser.email,
       },
       accessToken,
-      refreshToken,
     });
   } catch (err) {
     res.status(500).send({ message: NOT_FOUNDED_USER });
@@ -59,6 +58,10 @@ export const login = async (
     findedUser.tokens.push(refreshToken);
     await findedUser.save();
 
+    console.log(`Созданные токены:`);
+    console.log(`refresh: ${refreshToken}`);
+    console.log(`accessToken: ${accessToken}`);
+
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       sameSite: "lax",
@@ -73,7 +76,6 @@ export const login = async (
         email: findedUser.email,
       },
       accessToken,
-      refreshToken,
     });
   } catch (err) {
     res.status(401).send({ message: NOT_FOUNDED_USER });
@@ -124,16 +126,13 @@ export const logout = async (req: Request, res: Response) => {
 export const refreshAccessToken = async (req: Request, res: Response) => {
   const { refreshTokenExpiry } = configs.auth;
   const refreshToken = req.cookies.refreshToken;
-
   if (!refreshToken) {
-    console.log("Нет рефреш токена");
     return res.status(401).send({ message: "Пожалуйста, выполните вход" });
   }
 
   const user = await User.findOne({ tokens: refreshToken }).select("+tokens");
 
   if (!user) {
-    console.log("Не найден пользователь");
     return res.status(404).send({ message: "Пользователь не найден!" });
   }
 
@@ -158,7 +157,7 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
       name: user.name,
       email: user.email,
     },
-    succes: true,
+    success: true,
     accessToken,
   });
 };
