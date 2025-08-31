@@ -3,7 +3,7 @@ import { Router } from "express";
 
 const router = Router();
 
-router.get('/', getAllProducts);
-router.get('/:id', getProductById);
+router.get("/", getAllProducts);
+router.get("/:id", getProductById);
 
 export default router;
