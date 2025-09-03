@@ -34,3 +34,10 @@ export enum Payment {
   Card = "card",
   Online = "online",
 }
+
+export type TImage = {
+  fileName: string;
+  originalName: string;
+};
+
+export type TCategory = 'софт-скил' | 'хард-скил' | 'другое' | 'дополнительное' | 'кнопка';

@@ -1,9 +1,6 @@
 import mongoose from "mongoose";
+import { TImage } from "../types";
 
-type TImage = {
-  fileName: string;
-  originalName: string;
-};
 
 interface IProduct {
   title: string;
