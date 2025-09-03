@@ -19,3 +19,34 @@ export const getProductById = async (req: Request, res: Response) => {
     return res.status(500).send({ message: err });
   }
 };
+
+export const updateProductById = async (req: Request, res: Response) => {
+  try {
+    const updatedProduct = await product.findOneAndUpdate(
+      req.body.id,
+      { $set: { ...req.body } },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).send({ message: "Продукт не найден" });
+    }
+    return res.send(updatedProduct);
+  } catch (err) {
+    return res.status(500).send({ message: "Ошибка на стороне сервера" });
+  }
+};
+
+export const deleteProductById = async (req: Request, res: Response) => {
+  try {
+    const deletedProduct = await product.findByIdAndDelete(req.params.id);
+
+    if (!deletedProduct) {
+      return res.status(404).send({ message: "Продукт не найден" });
+    }
+
+    return res.send(deletedProduct);
+  } catch (err) {
+    return res.status(500).send({ message: "Ошибка на стороне сервера" });
+  }
+};
