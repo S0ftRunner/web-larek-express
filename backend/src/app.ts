@@ -7,6 +7,7 @@ import userRoute from "./routes/user";
 import orderRoute from "./routes/order";
 import { configs, configService } from "./config";
 import { errors } from "celebrate";
+import { requestLogger } from "./middlewares/logger";
 
 const app = express();
 const { port, originAllow } = configs;
@@ -21,6 +22,7 @@ app.use(
   })
 );
 
+app.use(requestLogger)
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
