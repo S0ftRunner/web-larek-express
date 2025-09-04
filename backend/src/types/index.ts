@@ -40,4 +40,9 @@ export type TImage = {
   originalName: string;
 };
 
-export type TCategory = 'софт-скил' | 'хард-скил' | 'другое' | 'дополнительное' | 'кнопка';
+export type TCategory =
+  | "софт-скил"
+  | "хард-скил"
+  | "другое"
+  | "дополнительное"
+  | "кнопка";
