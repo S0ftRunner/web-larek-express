@@ -50,3 +50,7 @@ export const deleteProductById = async (req: Request, res: Response) => {
     return res.status(500).send({ message: "Ошибка на стороне сервера" });
   }
 };
+
+export const createProduct = async (req: Request, res: Response) => {
+  
+};

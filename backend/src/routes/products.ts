@@ -13,5 +13,6 @@ router.get("/", getAllProducts);
 router.get("/:id", getProductById);
 router.patch("/:id", productValidator, updateProductById);
 router.delete("/:id", deleteProductById);
+router.post('/', )
 
 export default router;
