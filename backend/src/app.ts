@@ -7,7 +7,7 @@ import userRoute from "./routes/user";
 import orderRoute from "./routes/order";
 import { configs, configService } from "./config";
 import { errors } from "celebrate";
-import { requestLogger } from "./middlewares/logger";
+import { errorLogger, requestLogger } from "./middlewares/logger";
 
 const app = express();
 const { port, originAllow } = configs;
@@ -32,6 +32,7 @@ app.use(errors());
 app.use("/product", productRoute);
 app.use("/auth", userRoute);
 app.use("/order", orderRoute);
+app.use(errorLogger);
 
 app.listen(port, () => {
   console.log("Сервер запущен");
