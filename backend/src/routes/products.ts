@@ -1,4 +1,4 @@
-import { productValidator } from "../joiSchemas/product";
+import { productCreateValidator, productPatchValidator } from "../joiSchemas/product";
 import {
   deleteProductById,
   getAllProducts,
@@ -11,8 +11,8 @@ const router = Router();
 
 router.get("/", getAllProducts);
 router.get("/:id", getProductById);
-router.patch("/:id", productValidator, updateProductById);
+router.patch("/:id", productPatchValidator, updateProductById);
 router.delete("/:id", deleteProductById);
-router.post('/', )
+router.post('/', productCreateValidator,  )
 
 export default router;
