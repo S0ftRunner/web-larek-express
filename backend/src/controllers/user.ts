@@ -58,10 +58,6 @@ export const login = async (
     findedUser.tokens.push(refreshToken);
     await findedUser.save();
 
-    console.log(`Созданные токены:`);
-    console.log(`refresh: ${refreshToken}`);
-    console.log(`accessToken: ${accessToken}`);
-
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       sameSite: "lax",

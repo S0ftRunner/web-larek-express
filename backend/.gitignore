@@ -19,4 +19,6 @@ dist
 temp
 .env
 
+# Загруженные файлы на сервере
 uploads
+images
