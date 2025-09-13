@@ -46,3 +46,8 @@ export type TCategory =
   | "другое"
   | "дополнительное"
   | "кнопка";
+
+export enum FileTypes {
+  "JPG" = 'image/jpeg',
+  
+}
