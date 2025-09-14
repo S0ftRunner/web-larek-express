@@ -21,7 +21,6 @@ router.delete("/:id", deleteProductById);
 router.post(
   "/",
   productCreateValidator,
-  fileUpload.single("file"),
   createProduct
 );
 

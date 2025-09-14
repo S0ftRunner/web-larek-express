@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
+import fs from "fs/promises";
 import product from "../models/product";
+import path from "path";
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
@@ -52,5 +54,24 @@ export const deleteProductById = async (req: Request, res: Response) => {
 };
 
 export const createProduct = async (req: Request, res: Response) => {
+  try {
+    const createdProduct = await product.create(req.body);
 
+    const tempFileName = req.body.image.fileName.replace("/images/", "");
+
+    const sourcePath = path.join(__dirname, "..", "uploads", tempFileName);
+    const destPath = path.join(
+      __dirname,
+      "..",
+      "public",
+      "images",
+      req.body.image.originalName
+    );
+
+    await fs.rename(sourcePath, destPath);
+    return res.send(createdProduct);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ message: "ошибка сохранения файла" });
+  }
 };

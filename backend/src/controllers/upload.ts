@@ -1,14 +1,13 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 
-export const upload = async (req: Request, res: Response, next: NextFunction) => {
+export const upload = (req: Request, res: Response) => {
   const file = req.file;
-  // file.originalname - название файла
-  // 
+  console.log(JSON.stringify(req.body));
   if (!file) {
     return res.status(404).send({ message: "нет файла" });
   }
-
   return res.send({
-    fileName: `/images/${file.filename}.${file.}`
+    fileName: `/images/${file.filename}`,
+    originalName: file.originalname,
   });
 };
