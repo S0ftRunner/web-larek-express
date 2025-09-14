@@ -69,6 +69,8 @@ export const createProduct = async (req: Request, res: Response) => {
     );
 
     await fs.rename(sourcePath, destPath);
+    createdProduct.image.fileName = `/images/${createdProduct.image.originalName}`;
+    await createdProduct.save();
     return res.send(createdProduct);
   } catch (err) {
     console.log(err);
