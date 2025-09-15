@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import { NOT_FOUNDED_ENV_KEY } from "./utils/constants";
 
-
 dotenv.config();
 
 export const getEnvByKey = (envName: string, defaultValue?: string) => {
@@ -17,12 +16,20 @@ export const getEnvByKey = (envName: string, defaultValue?: string) => {
 export const configs = {
   jwtSecret: getEnvByKey("JWT_SECRET", "secret-key"),
   auth: {
-    refreshTokenExpiry: getEnvByKey("AUTH_REFRESH_TOKEN_EXPIRY", "secret-key") as jwt.SignOptions["expiresIn"],
-    accessTokenExpiry: getEnvByKey("AUTH_ACCESS_TOKEN_EXPIRY", "secret-key") as jwt.SignOptions["expiresIn"],
+    refreshTokenExpiry: getEnvByKey(
+      "AUTH_REFRESH_TOKEN_EXPIRY",
+      "secret-key"
+    ) as jwt.SignOptions["expiresIn"],
+    accessTokenExpiry: getEnvByKey(
+      "AUTH_ACCESS_TOKEN_EXPIRY",
+      "secret-key"
+    ) as jwt.SignOptions["expiresIn"],
   },
   port: getEnvByKey("PORT", "3000"),
   originAllow: getEnvByKey("ORIGIN_ALLOW", "secret-key"),
   dbAddress: getEnvByKey("DB_ADDRESS"),
+  uploadPath: getEnvByKey("UPLOAD_PATH"),
+  uploadTempPath: getEnvByKey("UPLOAD_PATH_TEMP"),
 };
 
 export const configService = async () => {

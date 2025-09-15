@@ -47,7 +47,10 @@ export type TCategory =
   | "дополнительное"
   | "кнопка";
 
-export enum FileTypes {
-  "JPG" = 'image/jpeg',
-  
-}
+export const FileTypes = [
+  "image/png",
+  "image/jpg",
+  "image/jpeg",
+  "image/gif",
+  "image/svg+xml",
+];

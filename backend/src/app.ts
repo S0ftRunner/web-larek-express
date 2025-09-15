@@ -7,11 +7,13 @@ import userRoute from "./routes/user";
 import orderRoute from "./routes/order";
 import uploadRoute from "./routes/upload";
 import { configs, configService } from "./config";
-import { errors } from "celebrate";
 import { errorLogger, requestLogger } from "./middlewares/logger";
+import { errors } from "celebrate";
+
+
 const app = express();
-const { port, originAllow } = configs;
 configService();
+const { port, originAllow } = configs;
 
 app.use(
   cors({
@@ -27,12 +29,13 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(errors());
+app.use(errorLogger);
 
 app.use("/product", productRoute);
 app.use("/auth", userRoute);
 app.use("/order", orderRoute);
 app.use("/upload", uploadRoute);
+app.use(errors());
 app.use(errorLogger);
 
 app.listen(port, () => {

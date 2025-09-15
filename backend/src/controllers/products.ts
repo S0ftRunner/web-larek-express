@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import fs from "fs/promises";
 import product from "../models/product";
-import path from "path";
+import { join } from "path";
+import { movingFile } from "../utils/movingFile";
+import { configs } from "../config";
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
@@ -24,6 +25,15 @@ export const getProductById = async (req: Request, res: Response) => {
 
 export const updateProductById = async (req: Request, res: Response) => {
   try {
+    const { image } = req.body;
+
+    if (image) {
+      movingFile(
+        image.fileName,
+        join(__dirname, `../public/${configs.uploadTempPath}`),
+        join(__dirname, `../public/${configs.uploadPath}`)
+      );
+    }
     const updatedProduct = await product.findOneAndUpdate(
       req.body.id,
       { $set: { ...req.body } },
@@ -55,22 +65,23 @@ export const deleteProductById = async (req: Request, res: Response) => {
 
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const createdProduct = await product.create(req.body);
+    const { description, category, price, image, title } = req.body;
+    if (image) {
+      movingFile(
+        image.fileName,
+        join(__dirname, `../public/${configs.uploadTempPath}`),
+        join(__dirname, `../public/${configs.uploadPath}`)
+      );
+    }
 
-    const tempFileName = req.body.image.fileName.replace("/images/", "");
+    const createdProduct = await product.create({
+      description,
+      image,
+      category,
+      price,
+      title,
+    });
 
-    const sourcePath = path.join(__dirname, "..", "uploads", tempFileName);
-    const destPath = path.join(
-      __dirname,
-      "..",
-      "public",
-      "images",
-      req.body.image.originalName
-    );
-
-    await fs.rename(sourcePath, destPath);
-    createdProduct.image.fileName = `/images/${createdProduct.image.originalName}`;
-    await createdProduct.save();
     return res.send(createdProduct);
   } catch (err) {
     console.log(err);

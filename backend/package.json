@@ -31,6 +31,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@types/unique-slug": "^4.0.0",
     "bcryptjs": "^3.0.2",
     "celebrate": "^15.0.3",
     "cookie-parser": "^1.4.7",
@@ -43,6 +44,7 @@
     "mongoose": "^8.3.2",
     "ms": "^2.1.3",
     "multer": "^2.0.2",
+    "unique-slug": "^5.0.0",
     "validator": "^13.11.0",
     "winston": "^3.17.0"
   }
