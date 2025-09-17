@@ -1,10 +1,10 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import product from "../models/product";
 import { join } from "path";
 import { movingFile } from "../utils/movingFile";
 import { configs } from "../config";
 
-export const getAllProducts = async (req: Request, res: Response) => {
+export const getAllProducts = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const products = await product.find({});
 
@@ -59,6 +59,7 @@ export const deleteProductById = async (req: Request, res: Response) => {
 
     return res.send(deletedProduct);
   } catch (err) {
+
     return res.status(500).send({ message: "Ошибка на стороне сервера" });
   }
 };

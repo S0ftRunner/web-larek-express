@@ -10,8 +10,8 @@ type FileNameCallback = (error: Error | null, fileName: string) => void;
 
 const storage = multer.diskStorage({
   destination: (
-    req: Request,
-    file: Express.Multer.File,
+    _req: Request,
+    _file: Express.Multer.File,
     cb: DestinationCallback
   ) => {
     cb(
@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
     );
   },
 
-  filename: (req: Request, file: Express.Multer.File, cb: FileNameCallback) => {
+  filename: (_req: Request, file: Express.Multer.File, cb: FileNameCallback) => {
     cb(
       null,
       `${uniqueSlug(new Date().toUTCString())}${extname(file.originalname)}`
