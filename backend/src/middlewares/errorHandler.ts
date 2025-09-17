@@ -1,4 +1,6 @@
 import { CelebrateError, isCelebrateError } from "celebrate";
+import DuplicateError from "../errors/duplicate-error";
+import { HttpStatuses } from "../errors/errorsStatuses";
 import { ErrorRequestHandler } from "express";
 
 const getCelebrateError = (err: CelebrateError) => {
@@ -27,5 +29,19 @@ const parseDuplicateErrors = (
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (isCelebrateError(err)) {
     const message = getCelebrateError(err);
+    return res.status(HttpStatuses.IncorrectDataError).send({ message });
+  }
+
+  if (err instanceof DuplicateError) {
+    const parsedError = parseDuplicateErrors(err.message);
+    if (parsedError) {
+      return res.status(HttpStatuses.DuplicateError).send({
+        message: `Возник конфликт в поле ${parsedError.field} со значением ${parsedError.value}`,
+      });
+    } else {
+      return res.status(HttpStatuses.DuplicateError).send({
+        message: "Возник конфликт дублирования ключа",
+      });
+    }
   }
 };

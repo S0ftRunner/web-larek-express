@@ -9,7 +9,7 @@ import uploadRoute from "./routes/upload";
 import { configs, configService } from "./config";
 import { errorLogger, requestLogger } from "./middlewares/logger";
 import { errors } from "celebrate";
-
+import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
 configService();
@@ -36,6 +36,7 @@ app.use("/auth", userRoute);
 app.use("/order", orderRoute);
 app.use("/upload", uploadRoute);
 app.use(errors());
+app.use(errorHandler);
 app.use(errorLogger);
 
 app.listen(port, () => {

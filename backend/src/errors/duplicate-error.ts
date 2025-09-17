@@ -1,4 +1,4 @@
-class DublicateError extends Error {
+class DuplicateError extends Error {
   public statusCode: number;
 
   constructor(message: string) {
@@ -6,3 +6,5 @@ class DublicateError extends Error {
     this.statusCode = 409;
   }
 }
+
+export default DuplicateError;
