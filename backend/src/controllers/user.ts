@@ -7,6 +7,7 @@ import User from "../models/user";
 import { NOT_FOUNDED_USER, SALT_SIZE } from "../utils/constants";
 import { configs } from "../config";
 import { generateTokens } from "../utils/generateTokens";
+import { HttpStatuses } from "../errors/errorsStatuses";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -40,7 +41,9 @@ export const register = async (req: Request, res: Response) => {
       accessToken,
     });
   } catch (err) {
-    res.status(500).send({ message: NOT_FOUNDED_USER });
+    res
+      .status(HttpStatuses.InternalServerError)
+      .send({ message: `Ошибка при регистрации: ${err}` });
   }
 };
 
@@ -74,7 +77,7 @@ export const login = async (
       accessToken,
     });
   } catch (err) {
-    res.status(401).send({ message: NOT_FOUNDED_USER });
+    res.status(HttpStatuses.NotFoundError).send({ message: NOT_FOUNDED_USER });
   }
 };
 
@@ -82,7 +85,9 @@ export const user = async (req: Request & RequestWithId, res: Response) => {
   const id = req.user?._id;
   const findedUser = await User.findById(id).select("+tokens");
   if (!findedUser) {
-    return res.status(404).send({ message: "Пользователь не был найден" });
+    return res
+      .status(HttpStatuses.NotFoundError)
+      .send({ message: "Пользователь не был найден" });
   }
 
   return res.send({
@@ -97,7 +102,9 @@ export const user = async (req: Request & RequestWithId, res: Response) => {
 export const logout = async (req: Request, res: Response) => {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
-    return res.status(400).send({ message: "Токен не найден!" });
+    return res
+      .status(HttpStatuses.InvalidTokenError)
+      .send({ message: "Токен не найден!" });
   }
 
   // Удаляем рефреш токен
@@ -109,7 +116,9 @@ export const logout = async (req: Request, res: Response) => {
   );
 
   if (user.matchedCount === 0) {
-    return res.status(401).send({ message: "Пользователь не найден" });
+    return res
+      .status(HttpStatuses.NotFoundError)
+      .send({ message: "Пользователь не найден" });
   }
 
   res.clearCookie("refreshToken");
@@ -123,13 +132,17 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
   const { refreshTokenExpiry } = configs.auth;
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
-    return res.status(401).send({ message: "Пожалуйста, выполните вход" });
+    return res
+      .status(HttpStatuses.InvalidTokenError)
+      .send({ message: "Пожалуйста, выполните вход" });
   }
 
   const user = await User.findOne({ tokens: refreshToken }).select("+tokens");
 
   if (!user) {
-    return res.status(404).send({ message: "Пользователь не найден!" });
+    return res
+      .status(HttpStatuses.NotFoundError)
+      .send({ message: "Пользователь не найден!" });
   }
 
   const { accessToken, refreshToken: newRefreshToken } = generateTokens(
