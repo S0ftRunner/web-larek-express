@@ -26,7 +26,7 @@ const parseDuplicateErrors = (
   return null;
 };
 
-export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (isCelebrateError(err)) {
     const message = getCelebrateError(err);
     return res.status(HttpStatuses.IncorrectDataError).send({ message });
