@@ -24,7 +24,11 @@ export const basketSlice = createSlice({
 			state.items = state.items.filter(item => {
 				return item._id !== action.payload;
 			});
+<<<<<<< HEAD
 			state.totalCount--;
+=======
+			state.totalCount -= 1;
+>>>>>>> admin
 		},
 		resetBasket: () => initialState,
 	},

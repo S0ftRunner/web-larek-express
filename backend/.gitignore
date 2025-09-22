@@ -17,4 +17,12 @@ node_modules
 # Typescript build
 dist
 temp
+<<<<<<< HEAD
 .env
+=======
+.env
+
+# Загруженные файлы на сервере
+uploads
+images
+>>>>>>> admin
